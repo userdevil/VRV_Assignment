@@ -33,21 +33,35 @@ def write_to_csv(ip_requests, most_accessed_endpoint, suspicious_ips, output_fil
     with open(output_file, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
 
-        # Requests per IP
-        writer.writerow(["IP Address", "Request Count"])
-        for ip, count in sorted(ip_requests.items(), key=lambda x: x[1], reverse=True):
-            writer.writerow([ip, count])
+        # Write the header
+        writer.writerow([
+            "IP Address", "Request Count",
+            "Endpoint", "Access Count",
+            "Suspicious IP Address", "Failed Login Count"
+        ])
 
-        # Most accessed endpoint
-        writer.writerow([])
-        writer.writerow(["Endpoint", "Access Count"])
-        writer.writerow(most_accessed_endpoint)
+        # Get the sorted lists
+        ip_requests_list = sorted(ip_requests.items(), key=lambda x: x[1], reverse=True)
+        suspicious_ips_list = list(suspicious_ips.items())
+        endpoint = most_accessed_endpoint[0]
+        access_count = most_accessed_endpoint[1]
 
-        # Suspicious activity
-        writer.writerow([])
-        writer.writerow(["IP Address", "Failed Login Count"])
-        for ip, count in suspicious_ips.items():
-            writer.writerow([ip, count])
+        # Determine the maximum length among the datasets
+        max_length = max(len(ip_requests_list), len(suspicious_ips_list))
+
+        # Write the rows
+        for i in range(max_length):
+            ip_request_data = ip_requests_list[i] if i < len(ip_requests_list) else ("", "")
+            suspicious_ip_data = suspicious_ips_list[i] if i < len(suspicious_ips_list) else ("", "")
+            
+            # Include the endpoint info only in the first row
+            endpoint_data = (endpoint, access_count) if i == 0 else ("", "")
+            
+            writer.writerow([
+                ip_request_data[0], ip_request_data[1],
+                endpoint_data[0], endpoint_data[1],
+                suspicious_ip_data[0], suspicious_ip_data[1]
+            ])
 
 def main():
     log_file_path = input("Enter the path to the log file: ")
